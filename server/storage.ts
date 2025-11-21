@@ -1,37 +1,40 @@
-import { type User, type InsertUser } from "@shared/schema";
-import { randomUUID } from "crypto";
-
-// modify the interface with any CRUD methods
-// you might need
+// Storage interface for Instagram video downloader
+// Using in-memory storage as requested
 
 export interface IStorage {
-  getUser(id: string): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
+  storeDownloadToken(token: string, url: string): void;
+  getDownloadUrl(token: string): string | undefined;
+  deleteDownloadToken(token: string): void;
 }
 
 export class MemStorage implements IStorage {
-  private users: Map<string, User>;
+  private downloadTokens: Map<string, { url: string; createdAt: number }>;
 
   constructor() {
-    this.users = new Map();
+    this.downloadTokens = new Map();
+    
+    setInterval(() => {
+      const now = Date.now();
+      const maxAge = 30 * 60 * 1000;
+      
+      for (const [token, data] of this.downloadTokens.entries()) {
+        if (now - data.createdAt > maxAge) {
+          this.downloadTokens.delete(token);
+        }
+      }
+    }, 5 * 60 * 1000);
   }
 
-  async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
+  storeDownloadToken(token: string, url: string): void {
+    this.downloadTokens.set(token, { url, createdAt: Date.now() });
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
+  getDownloadUrl(token: string): string | undefined {
+    return this.downloadTokens.get(token)?.url;
   }
 
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const id = randomUUID();
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
-    return user;
+  deleteDownloadToken(token: string): void {
+    this.downloadTokens.delete(token);
   }
 }
 

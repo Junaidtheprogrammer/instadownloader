@@ -1,18 +1,22 @@
-import { sql } from "drizzle-orm";
-import { pgTable, text, varchar } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const users = pgTable("users", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
+export const videoMetadataSchema = z.object({
+  url: z.string().url(),
+  thumbnail: z.string().url().optional(),
+  title: z.string().optional(),
+  username: z.string().optional(),
+  duration: z.number().optional(),
+  downloadUrl: z.string(),
+  type: z.enum(['reel', 'igtv', 'post']).optional(),
 });
 
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
+export const fetchVideoRequestSchema = z.object({
+  url: z.string().url().refine((url) => {
+    return url.includes('instagram.com');
+  }, {
+    message: "URL must be from Instagram (instagram.com)"
+  }),
 });
 
-export type InsertUser = z.infer<typeof insertUserSchema>;
-export type User = typeof users.$inferSelect;
+export type VideoMetadata = z.infer<typeof videoMetadataSchema>;
+export type FetchVideoRequest = z.infer<typeof fetchVideoRequestSchema>;
