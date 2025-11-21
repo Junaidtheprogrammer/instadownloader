@@ -46,9 +46,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      if (error.response?.status === 401 || error.message?.includes('401')) {
+        return res.status(503).json({
+          error: "Service temporarily unavailable",
+          message: "Instagram is currently blocking video downloads. Please try again later or use a different video URL.",
+        });
+      }
+
+      if (error.response?.status === 404 || error.message?.includes('404') || error.message?.includes('not found')) {
+        return res.status(404).json({
+          error: "Video not found",
+          message: "The video could not be found. It may be private, deleted, or the URL may be incorrect.",
+        });
+      }
+
+      if (error.response?.status === 429 || error.message?.includes('429') || error.message?.includes('rate limit')) {
+        return res.status(429).json({
+          error: "Too many requests",
+          message: "Instagram rate limit reached. Please wait a few minutes and try again.",
+        });
+      }
+
       res.status(500).json({
         error: "Failed to fetch video",
-        message: error.message || "An error occurred while fetching the video. Please try again.",
+        message: "Unable to retrieve video information. The video may be private or Instagram's service is temporarily unavailable. Please try again.",
       });
     }
   });
