@@ -1,24 +1,10 @@
 {
-  "version": 2,
-  "builds": [
+  "buildCommand": "vite build",
+  "outputDirectory": "dist/public",
+  "rewrites": [
     {
-      "src": "server/index-prod.ts",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "client/package.json",
-      "use": "@vercel/static-build",
-      "config": { "distDir": "dist/public" }
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/server/index-prod.ts"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/server/index-prod.ts"
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
