@@ -1,5 +1,12 @@
 import { z } from "zod";
 
+export interface InstagramResponse {
+  thumbnail?: string;
+  title?: string;
+  duration?: number;
+  url_list?: string[];
+}
+
 export const videoMetadataSchema = z.object({
   url: z.string().url(),
   thumbnail: z.string().url().optional(),
