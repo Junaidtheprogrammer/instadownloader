@@ -4,7 +4,7 @@ export interface InstagramResponse {
   thumbnail?: string;
   title?: string;
   duration?: number;
-  url_list?: string[];
+  url_list: string[];
 }
 
 export const videoMetadataSchema = z.object({
