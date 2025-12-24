@@ -1,12 +1,11 @@
 import fs from "node:fs";
 import path from "node:path";
-import { type Server } from "node:http";
-
 import express, { type Express } from "express";
 import runApp from "./app";
 
-export async function serveStatic(app: Express, _server: Server) {
-  const distPath = path.resolve(import.meta.dirname, "public");
+export async function serveStatic(app: Express) {
+  // Use __dirname instead of import.meta.dirname
+  const distPath = path.resolve(__dirname, "public"); // dist/public is built by Vite
 
   if (!fs.existsSync(distPath)) {
     throw new Error(
@@ -14,14 +13,21 @@ export async function serveStatic(app: Express, _server: Server) {
     );
   }
 
+  // Serve static frontend
   app.use(express.static(distPath));
 
-  // fall through to index.html if the file doesn't exist
-  app.use("*", (_req, res) => {
-    res.sendFile(path.resolve(distPath, "index.html"));
+  // SPA fallback
+  app.get("*", (_req, res) => {
+    res.sendFile(path.join(distPath, "index.html"));
   });
 }
 
 (async () => {
-  await runApp(serveStatic);
+  const app = express();
+  await runApp((appInstance: Express) => serveStatic(appInstance));
+  
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
 })();
